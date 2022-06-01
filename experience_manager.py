@@ -10,6 +10,8 @@ from ev_pddl.world_state import WorldState
 from ev_pddl.action import Action
 import input_timeout
 import threading
+import json
+import debugpy
 
 class ExperienceManager:
 
@@ -88,7 +90,8 @@ class ExperienceManager:
         This is the main loop of the experience manager.
         """
         self.platform_communication.start_receiving_messages()
-        
+        # debugpy.listen(5678)
+        # debugpy.wait_for_client()
         self.domain = self._PDDL_parser.parse_domain(domain_str = self.PDDL_domain_text)
         # self.domain = self._PDDL_parser.parse_domain(domain_filename="domain.pddl")
         print("Domain parsed correcly")
@@ -97,10 +100,6 @@ class ExperienceManager:
         print("Problem parsed correcly")
         self.environment_state = WorldState()
         self.environment_state.create_worldstate_from_problem(problem = self.problem, domain=self.domain)
-        # import debugpy
-        # debugpy.listen(5678)
-        # debugpy.wait_for_client()
-        # debugpy.breakpoint()
         print("Starting normal communication...")
         print("Press something to start the action builder...")
         thread = None
@@ -135,6 +134,8 @@ class ExperienceManager:
                     PDDL_relation = self.environment_state.create_relation_from_PDDL(rel[1])
                     environment_state_relation = self.environment_state.find_relation(relation = PDDL_relation, exclude_value = True)
                     environment_state_relation.modify_value(PDDL_relation.value)
+                elif rel[0] == 'new_entity':
+                    self.environment_state.add_entity_from_PDDL(rel[1])
 
     def create_action_to_send_to_environment(self):
         """
@@ -149,6 +150,9 @@ class ExperienceManager:
         something = input()
         if something.isdigit():
             i = int(something)
+            if i < 0 or i >= len(self.domain.actions):
+                print("We accept a range between 0 and "+ str(len(self.domain.actions)-1))
+                return
             action = self.domain.actions[i]
             print("Your selected action: ")
             print(action.to_PDDL())
@@ -157,7 +161,10 @@ class ExperienceManager:
             for param in action.parameters:
                 print(param)
                 print("Choose the entity with type " + param.type.name + ":")
-                entities = self.environment_state.find_entities_with_type(type = param.type.name)
+                if action.name.startswith("instantiate_") and param.name == '?obj':
+                    entities = ["Apple","GreenKey","RedBook","Bag","GreenPotion","RedCloth","BlueBook","Hammer","RedKey","BlueCloth","Helmet","RedPotion","BlueKey","InkandQuill","Scroll","BluePotion","JewelKey","Skull","Bottle","LitTorch","SpellBook","Bread","Lock","Sword","ChickenLeg","MagnifyingGlass","Coin","OpenScroll","Compass","PurpleBook","Cup","PurpleCloth","EvilBook","PurpleKey","GoldCup","PurplePotion","GreenBook","Rags","Torch"]
+                else:
+                    entities = self.environment_state.find_entities_with_type(type = param.type.name)
                 self.print_entities(entities)
                 entity = input("Write the number of the entity and press enter:")
                 if entity.isdigit() and int(entity) < len(entities):
