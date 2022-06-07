@@ -177,6 +177,8 @@ class ExperienceManager:
             if result:
                 message = action_real.get_string_execution()
                 print("Action created: " + message)
+                if message.startswith("instantiate_") and 'chest' in message.lower():
+                    print("Positioning a item inside a chest might not work correctly for uknown reasons. The item will be created but not placed inside the chest.")
                 print("Sending action to environment...")
                 try:
                     result = self.platform_communication.send_message(message)
