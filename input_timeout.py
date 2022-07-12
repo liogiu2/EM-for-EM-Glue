@@ -1,8 +1,9 @@
-import msvcrt
+import os
+if os.name == 'nt':
+    import msvcrt
 import time
 import sys
 import select
-import os
 
 class TimeoutExpired(Exception):
     pass
