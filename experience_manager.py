@@ -146,6 +146,7 @@ class ExperienceManager:
         for action in self.domain.actions:
             print(str(i) + "- Action: " + action.name)
             i += 1
+        print ("X for predefined action")
         print("Write the number of the action you want to create and press enter. To exit press a letter.")
         something = input()
         if something.isdigit():
@@ -189,6 +190,8 @@ class ExperienceManager:
             else:
                 print("The action cannot be applied because: " + reason)
                 print("I'm not sending the action to Camelot. Please try again.")
+        elif something == "X":
+            result = self.platform_communication.send_message("start_conversation(luca, initial_narrative)")
         else:
             return
 
